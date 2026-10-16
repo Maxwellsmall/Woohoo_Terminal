@@ -165,51 +165,48 @@ introducing additional dependencies.
 
 Use a feature-oriented structure so each developer can work
 independently:
-
-``` text
 woohoo-world-terminal/
-â”œâ”€â”€ public/
-â”‚   â””â”€â”€ assets/
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ app/
-â”‚   â”‚   â”œâ”€â”€ App.tsx
-â”‚   â”‚   â””â”€â”€ providers.tsx
-â”‚   â”œâ”€â”€ components/
-â”‚   â”‚   â”œâ”€â”€ layout/
-â”‚   â”‚   â”‚   â”œâ”€â”€ TerminalHeader.tsx
-â”‚   â”‚   â”‚   â””â”€â”€ TerminalLayout.tsx
-â”‚   â”‚   â””â”€â”€ ui/
-â”‚   â”œâ”€â”€ features/
-â”‚   â”‚   â”œâ”€â”€ market-chart/
-â”‚   â”‚   â”‚   â”œâ”€â”€ MarketChart.tsx
-â”‚   â”‚   â”‚   â”œâ”€â”€ TimeframeSelector.tsx
-â”‚   â”‚   â”‚   â””â”€â”€ market.types.ts
-â”‚   â”‚   â”œâ”€â”€ activity-feed/
-â”‚   â”‚   â”‚   â”œâ”€â”€ ActivityFeed.tsx
-â”‚   â”‚   â”‚   â””â”€â”€ activity.types.ts
-â”‚   â”‚   â”œâ”€â”€ token-intelligence/
-â”‚   â”‚   â”‚   â”œâ”€â”€ TokenOverview.tsx
-â”‚   â”‚   â”‚   â”œâ”€â”€ TokenMetrics.tsx
-â”‚   â”‚   â”‚   â””â”€â”€ SecurityPanel.tsx
-â”‚   â”‚   â””â”€â”€ analytics/
-â”‚   â”‚       â”œâ”€â”€ PositionsTable.tsx
-â”‚   â”‚       â””â”€â”€ NetworkAnalytics.tsx
-â”‚   â”œâ”€â”€ services/
-â”‚   â”‚   â”œâ”€â”€ market.service.ts
-â”‚   â”‚   â””â”€â”€ activity.service.ts
-â”‚   â”œâ”€â”€ types/
-â”‚   â”‚   â””â”€â”€ index.ts
-â”‚   â”œâ”€â”€ data/
-â”‚   â”‚   â””â”€â”€ mock-data.ts
-â”‚   â”œâ”€â”€ styles/
-â”‚   â”‚   â””â”€â”€ globals.css
-â”‚   â””â”€â”€ main.tsx
-â”œâ”€â”€ .env.example
-â”œâ”€â”€ .gitignore
-â”œâ”€â”€ package.json
-â”œâ”€â”€ README.md
-â””â”€â”€ tsconfig.json
-```
+├── public/
+│   └── assets/
+├── src/
+│   ├── app/
+│   │   ├── App.tsx
+│   │   └── providers.tsx
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── TerminalHeader.tsx
+│   │   │   └── TerminalLayout.tsx
+│   │   └── ui/
+│   ├── features/
+│   │   ├── market-chart/
+│   │   │   ├── MarketChart.tsx
+│   │   │   ├── TimeframeSelector.tsx
+│   │   │   └── market.types.ts
+│   │   ├── activity-feed/
+│   │   │   ├── ActivityFeed.tsx
+│   │   │   └── activity.types.ts
+│   │   ├── token-intelligence/
+│   │   │   ├── TokenOverview.tsx
+│   │   │   ├── TokenMetrics.tsx
+│   │   │   └── SecurityPanel.tsx
+│   │   └── analytics/
+│   │       ├── PositionsTable.tsx
+│   │       └── NetworkAnalytics.tsx
+│   ├── services/
+│   │   ├── market.service.ts
+│   │   └── activity.service.ts
+│   ├── types/
+│   │   └── index.ts
+│   ├── data/
+│   │   └── mock-data.ts
+│   ├── styles/
+│   │   └── globals.css
+│   └── main.tsx
+├── .env.example
+├── .gitignore
+├── package.json
+├── README.md
+└── tsconfig.json
 
 This is the target structure, not a requirement to create every file
 immediately. Add or adjust files as the implementation evolves, but
