@@ -1,83 +1,91 @@
-import TokenSelector from "../ui/TokenSelector";
+import { Activity, Settings2, Terminal } from "lucide-react";
+
 import TokenSearch from "../ui/TokenSearch";
-import {
-  Activity,
-  Bell,
-  ChevronDown,
-  Settings2,
-  Wallet,
-} from "lucide-react";
+import TokenSelector from "../ui/TokenSelector";
+import MarketTicker from "../ui/MarketTicker";
+import NetworkIndicator from "../ui/NetworkIndicator";
+import WalletButton from "../ui/WalletButton";
 
 export default function TerminalHeader() {
   return (
-    <header className="flex min-h-16 items-center justify-between gap-4 border-b border-white/8 bg-[#0b0f0d] px-5">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-400/10">
-          <Activity className="h-5 w-5 text-emerald-400" />
+    <header className="relative z-30 border-b border-emerald-500/20 bg-[#0b100e]">
+      <div className="flex min-h-[64px] flex-wrap items-center gap-3 px-4 py-3 xl:flex-nowrap">
+        {/* Brand */}
+        <div className="flex shrink-0 items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-500/10">
+            <Activity size={18} className="text-emerald-400" />
+          </div>
+
+          <div>
+            <h1 className="whitespace-nowrap text-sm font-bold tracking-wide text-white">
+              WOOHOO WORLD
+            </h1>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-emerald-400">
+              Multiverse Terminal
+            </p>
+          </div>
         </div>
 
-        <div>
-          <h1 className="text-sm font-bold tracking-wide text-white">
-            WOOHOO
-            <span className="ml-1 text-emerald-400">TERMINAL</span>
-          </h1>
+        {/* Terminal navigation */}
+        <nav
+          aria-label="Terminal navigation"
+          className="hidden items-center gap-1 rounded-lg border border-white/10 p-1 lg:flex"
+        >
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-md bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-300"
+          >
+            <Terminal size={13} />
+            Terminal
+          </button>
 
-          <p className="mt-0.5 text-[10px] uppercase tracking-[0.2em] text-gray-500">
-            Web3 Market Intelligence
-          </p>
-        </div>
-      </div>
+          <button
+            type="button"
+            disabled
+            title="Swap functionality is not implemented"
+            className="cursor-not-allowed rounded-md px-3 py-2 text-xs text-gray-500"
+          >
+            Swap
+          </button>
+        </nav>
 
-      <div className="hidden max-w-md flex-1 md:flex">
-        <div className="flex w-full items-center gap-2 rounded-lg border border-white/8 bg-white/2 px-3 py-2">
+        {/* Search */}
+        <div className="order-3 w-full min-w-0 xl:order-none xl:ml-auto xl:w-auto xl:flex-1 xl:max-w-sm">
           <TokenSearch />
+        </div>
 
-          <input
-            type="search"
-            placeholder="Search tokens, wallets, contracts..."
-            aria-label="Search tokens, wallets, and contracts"
-            className="w-full bg-transparent text-sm text-gray-200 outline-none placeholder:text-gray-600"
-          />
+        {/* Market and token controls */}
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="hidden 2xl:block">
+            <MarketTicker />
+          </div>
 
-          <span className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-gray-500">
-            /
-          </span>
+          <div className="hidden md:block">
+            <TokenSelector />
+          </div>
+
+          <NetworkIndicator />
+        </div>
+
+        {/* Settings and wallet */}
+        <div className="ml-auto flex shrink-0 items-center gap-2 xl:ml-0">
+          <button
+            type="button"
+            aria-label="Settings"
+            title="Settings are not implemented yet"
+            className="rounded-lg border border-white/10 p-2 text-gray-400 transition hover:text-white"
+          >
+            <Settings2 size={16} />
+          </button>
+
+          <WalletButton />
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <div className="hidden items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/6 px-3 py-1.5 sm:flex">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <span className="text-xs text-emerald-300">System Online</span>
-        </div>
-
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="rounded-lg p-2 text-gray-400 transition hover:bg-white/6 hover:text-white"
-        >
-          <Bell className="h-4 w-4" />
-        </button>
-
-        <button
-          type="button"
-          aria-label="Settings"
-          className="rounded-lg p-2 text-gray-400 transition hover:bg-white/6 hover:text-white"
-        >
-          <Settings2 className="h-4 w-4" />
-        </button>
-
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/4 px-3 py-2 text-xs font-medium text-gray-200 transition hover:bg-white/8"
-        >
-          <Wallet className="h-4 w-4 text-emerald-400" />
-          <span className="hidden sm:inline">Connect Wallet</span>
-          <ChevronDown className="hidden h-3 w-3 sm:block" />
-        </button>
+      {/* Compact ticker for medium screens */}
+      <div className="border-t border-white/5 px-4 py-2 2xl:hidden">
+        <MarketTicker />
       </div>
-
-      <TokenSelector />
     </header>
   );
 }
