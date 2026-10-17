@@ -9,7 +9,7 @@ import WalletButton from "../ui/WalletButton";
 export default function TerminalHeader() {
   return (
     <header className="relative z-30 border-b border-emerald-500/20 bg-[#0b100e]">
-      <div className="flex min-h-[64px] flex-wrap items-center gap-3 px-4 py-3 xl:flex-nowrap">
+      <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 py-3 xl:flex-nowrap">
         {/* Brand */}
         <div className="flex shrink-0 items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-500/10">
@@ -50,7 +50,7 @@ export default function TerminalHeader() {
         </nav>
 
         {/* Search */}
-        <div className="order-3 w-full min-w-0 xl:order-none xl:ml-auto xl:w-auto xl:flex-1 xl:max-w-sm">
+        <div className="order-3 w-full min-w-0 xl:order-0 xl:ml-auto xl:w-auto xl:flex-1 xl:max-w-sm">
           <TokenSearch />
         </div>
 

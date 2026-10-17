@@ -25,7 +25,7 @@ export default function MetricCard({
         {icon && <span className="shrink-0 text-gray-400">{icon}</span>}
       </div>
 
-      <p className={`break-words text-base font-semibold ${valueClassName}`}>
+      <p className={`wrap-break-word text-base font-semibold ${valueClassName}`}>
         {value}
       </p>
 
