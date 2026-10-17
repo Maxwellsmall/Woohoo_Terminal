@@ -1,5 +1,8 @@
 import type { TokenMetrics as TokenMetricsType } from "../../types";
 
+import ChangeIndicator from "../../components/ui/ChangeIndicator";
+import MetricCard from "../../components/ui/MetricCard";
+
 interface TokenMetricsProps {
   metrics: TokenMetricsType;
 }
@@ -14,52 +17,36 @@ const formatCurrency = (value: number): string => {
 };
 
 export default function TokenMetrics({ metrics }: TokenMetricsProps) {
-  const isPositive = metrics.priceChange24h >= 0;
-
-  const rows = [
-    {
-      label: "Price",
-      value: `$${metrics.priceUsd.toFixed(4)}`,
-    },
-    {
-      label: "Market Cap",
-      value: formatCurrency(metrics.marketCapUsd),
-    },
-    {
-      label: "Liquidity",
-      value: formatCurrency(metrics.liquidityUsd),
-    },
-    {
-      label: "24h Volume",
-      value: formatCurrency(metrics.volume24hUsd),
-    },
-  ];
-
   return (
     <section className="border-b border-white/10 py-5">
       <h3 className="mb-4 text-sm font-semibold text-white">Market Metrics</h3>
 
-      <div className="space-y-4">
-        {rows.map((row) => (
-          <div key={row.label} className="flex items-center justify-between">
-            <span className="text-sm text-gray-400">{row.label}</span>
+      <div className="grid grid-cols-2 gap-3">
+        <MetricCard
+          label="Price"
+          value={`$${metrics.priceUsd.toFixed(metrics.priceUsd < 1 ? 4 : 2)}`}
+        />
 
-            <span className="text-sm font-medium text-white">{row.value}</span>
-          </div>
-        ))}
+        <MetricCard
+          label="Market Cap"
+          value={formatCurrency(metrics.marketCapUsd)}
+        />
 
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-400">24h Change</span>
+        <MetricCard
+          label="Liquidity"
+          value={formatCurrency(metrics.liquidityUsd)}
+        />
 
-          <span
-            className={`text-sm font-medium ${
-              isPositive ? "text-emerald-400" : "text-red-400"
-            }`}
-          >
-            {isPositive ? "+" : ""}
-            {metrics.priceChange24h.toFixed(2)}%
-          </span>
-        </div>
+        <MetricCard
+          label="24h Volume"
+          value={formatCurrency(metrics.volume24hUsd)}
+        />
+      </div>
+
+      <div className="mt-4 flex items-center justify-between">
+        <span className="text-sm text-gray-400">24h Change</span>
+
+        <ChangeIndicator value={metrics.priceChange24h} />
       </div>
     </section>
   );
