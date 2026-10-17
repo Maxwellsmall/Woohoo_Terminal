@@ -21,3 +21,27 @@ export const mockToken: Token = {
     liquidityLocked: null,
   },
 };
+
+export const secondMockToken: Token = {
+  id: "sample-demo",
+  name: "Sample Token",
+  symbol: "SMP",
+  network: "Demo Network",
+  contractAddress: null,
+
+  metrics: {
+    priceUsd: 1.245,
+    marketCapUsd: 12500000,
+    liquidityUsd: 850000,
+    volume24hUsd: 425000,
+    priceChange24h: -2.75,
+  },
+
+  security: {
+    contractVerification: "unknown",
+    ownershipRenounced: null,
+    liquidityLocked: null,
+  },
+};
+
+export const mockTokens: Token[] = [mockToken, secondMockToken];

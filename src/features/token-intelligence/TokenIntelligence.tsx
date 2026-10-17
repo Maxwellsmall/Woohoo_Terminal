@@ -1,10 +1,12 @@
-import { mockToken } from "../../data/mock-data";
+import { useSelectedToken } from "../../app/TokenContext";
 
 import TokenOverview from "./TokenOverview";
 import TokenMetrics from "./TokenMetrics";
 import SecurityPanel from "./SecurityPanel";
 
 export default function TokenIntelligence() {
+  const { selectedToken } = useSelectedToken();
+
   return (
     <aside className="h-full rounded-xl border border-white/10 bg-[#101513] p-5">
       <div className="mb-5 flex items-center justify-between">
@@ -17,11 +19,11 @@ export default function TokenIntelligence() {
         </span>
       </div>
 
-      <TokenOverview token={mockToken} />
+      <TokenOverview token={selectedToken} />
 
-      <TokenMetrics metrics={mockToken.metrics} />
+      <TokenMetrics metrics={selectedToken.metrics} />
 
-      <SecurityPanel security={mockToken.security} />
+      <SecurityPanel security={selectedToken.security} />
     </aside>
   );
 }

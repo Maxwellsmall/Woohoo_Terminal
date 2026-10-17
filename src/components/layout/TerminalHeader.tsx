@@ -1,8 +1,9 @@
+import TokenSelector from "../ui/TokenSelector";
+import TokenSearch from "../ui/TokenSearch";
 import {
   Activity,
   Bell,
   ChevronDown,
-  Search,
   Settings2,
   Wallet,
 } from "lucide-react";
@@ -29,7 +30,7 @@ export default function TerminalHeader() {
 
       <div className="hidden max-w-md flex-1 md:flex">
         <div className="flex w-full items-center gap-2 rounded-lg border border-white/8 bg-white/2 px-3 py-2">
-          <Search className="h-4 w-4 text-gray-500" />
+          <TokenSearch />
 
           <input
             type="search"
@@ -75,6 +76,8 @@ export default function TerminalHeader() {
           <ChevronDown className="hidden h-3 w-3 sm:block" />
         </button>
       </div>
+
+      <TokenSelector />
     </header>
   );
 }
