@@ -1,10 +1,10 @@
 import { ChevronDown } from "lucide-react";
 
 import { useSelectedToken } from "../../app/TokenContext";
-import { mockTokens } from "../../data/mock-data";
 
 export default function TokenSelector() {
-  const { selectedToken, setSelectedToken } = useSelectedToken();
+  const { selectedToken, setSelectedToken, tokens, isLoading } =
+    useSelectedToken();
 
   return (
     <div className="relative">
@@ -16,19 +16,22 @@ export default function TokenSelector() {
 
       <select
         aria-label="Select token"
-        value={selectedToken.id}
+        value={selectedToken?.id ?? ""}
+        disabled={isLoading || tokens.length === 0}
         onChange={(event) => {
-          const token = mockTokens.find(
-            (item) => item.id === event.target.value,
-          );
+          const token = tokens.find((item) => item.id === event.target.value);
 
           if (token) {
             setSelectedToken(token);
           }
         }}
-        className="w-full min-w-40 appearance-none rounded-lg border border-white/10 bg-[#101513] px-3 py-2 pr-9 text-sm text-white outline-none focus:border-emerald-500"
+        className="w-full min-w-40 appearance-none rounded-lg border border-white/10 bg-[#101513] px-3 py-2 pr-9 text-sm text-white outline-none focus:border-emerald-500 disabled:opacity-50"
       >
-        {mockTokens.map((token) => (
+        {tokens.length === 0 && (
+          <option value="">{isLoading ? "Loading..." : "No tokens"}</option>
+        )}
+
+        {tokens.map((token) => (
           <option key={token.id} value={token.id}>
             {token.symbol} — {token.name}
           </option>

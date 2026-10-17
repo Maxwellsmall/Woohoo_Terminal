@@ -2,15 +2,15 @@ import { useState } from "react";
 import { Search, X } from "lucide-react";
 
 import { useSelectedToken } from "../../app/TokenContext";
-import { mockTokens } from "../../data/mock-data";
+
 
 export default function TokenSearch() {
-  const { setSelectedToken } = useSelectedToken();
+  const { tokens, setSelectedToken, isLoading } = useSelectedToken();
 
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const filteredTokens = mockTokens.filter((token) => {
+  const filteredTokens = tokens.filter((token) => {
     const search = query.trim().toLowerCase();
 
     return (
@@ -22,7 +22,7 @@ export default function TokenSearch() {
   });
 
   const handleSelect = (tokenId: string) => {
-    const token = mockTokens.find((item) => item.id === tokenId);
+    const token = tokens.find((item) => item.id === tokenId);
 
     if (!token) return;
 
@@ -78,7 +78,11 @@ export default function TokenSearch() {
         >
           <div className="mb-2 px-2 text-xs text-gray-500">Demo Tokens</div>
 
-          {filteredTokens.length > 0 ? (
+          {isLoading ? (
+            <p className="px-3 py-4 text-center text-sm text-gray-400">
+              Loading tokens...
+            </p>
+          ) : filteredTokens.length > 0 ? (
             filteredTokens.map((token) => (
               <button
                 key={token.id}
