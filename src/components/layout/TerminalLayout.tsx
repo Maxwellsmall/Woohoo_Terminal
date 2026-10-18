@@ -25,8 +25,7 @@ export default function TerminalLayout({
         <div
           className="
             grid min-h-0 flex-1 grid-cols-1 gap-3
-            xl:grid-cols-[180px_minmax(0,1fr)_260px]
-            2xl:grid-cols-[190px_minmax(0,1fr)_270px]
+            xl:grid-cols-[260px_minmax(0,1fr)_280px]
           "
         >
           {/* Activity stream */}

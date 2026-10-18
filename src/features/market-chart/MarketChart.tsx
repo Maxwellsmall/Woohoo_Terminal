@@ -14,7 +14,7 @@ export default function MarketChart() {
         }
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
         <div>
           <p className="text-xs text-gray-500">Selected market</p>
           <h3 className="mt-1 text-lg font-semibold text-white">WHH / USD</h3>
@@ -54,8 +54,8 @@ export default function MarketChart() {
         </span>
       </div>
 
-      <div className="flex min-h-[320px] flex-col items-center justify-center px-6 py-12 text-center sm:min-h-[420px]">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.05]">
+      <div className="flex min-h-80 flex-col items-center justify-center px-6 py-12 text-center sm:min-h-105">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-400/15 bg-emerald-400/5">
           <CandlestickChart className="h-7 w-7 text-emerald-400" />
         </div>
 
@@ -68,7 +68,7 @@ export default function MarketChart() {
           integration.
         </p>
 
-        <span className="mt-4 rounded-full border border-white/[0.08] px-3 py-1 text-[10px] text-gray-500">
+        <span className="mt-4 rounded-full border border-white/8 px-3 py-1 text-[10px] text-gray-500">
           Chart integration pending
         </span>
       </div>

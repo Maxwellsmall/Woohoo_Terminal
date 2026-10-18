@@ -22,7 +22,7 @@ export default function ActivityFeed() {
         }
       />
 
-      <div className="flex flex-wrap gap-2 border-b border-white/[0.06] p-3">
+      <div className="flex gap-1 border-b border-white/6 p-3">
         {["All", "Swaps", "Mints", "Votes"].map((filter, index) => (
           <button
             key={filter}
@@ -30,7 +30,7 @@ export default function ActivityFeed() {
             className={`rounded-md px-2.5 py-1.5 text-xs ${
               index === 0
                 ? "bg-emerald-400/10 text-emerald-300"
-                : "text-gray-500 hover:bg-white/[0.05] hover:text-gray-200"
+                : "text-gray-500 hover:bg-white/5 hover:text-gray-200"
             }`}
           >
             {filter}
@@ -38,11 +38,11 @@ export default function ActivityFeed() {
         ))}
       </div>
 
-      <div className="divide-y divide-white/[0.05]">
+      <div className="divide-y divide-white/5">
         {activities.map((activity, index) => (
           <div key={`${activity.type}-${index}`} className="px-4 py-4">
             <div className="flex items-center justify-between gap-2">
-              <span className="rounded bg-white/[0.05] px-2 py-1 text-[10px] text-gray-400">
+              <span className="rounded bg-white/5 px-2 py-1 text-[10px] text-gray-400">
                 {activity.type}
               </span>
 
