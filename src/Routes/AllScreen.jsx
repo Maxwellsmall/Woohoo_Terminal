@@ -1,4 +1,3 @@
-import React from "react"
 import { Route, Routes } from "react-router-dom"
 import Staticlayout from "../layout/StaticLayout"
 import Home from"../pages/Home"
