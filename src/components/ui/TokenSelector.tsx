@@ -11,7 +11,7 @@ export default function TokenSelector() {
       <ChevronDown
         size={15}
         aria-hidden="true"
-        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+        className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
       />
 
       <select
@@ -25,7 +25,7 @@ export default function TokenSelector() {
             setSelectedToken(token);
           }
         }}
-        className="w-full min-w-40 appearance-none rounded-lg border border-white/10 bg-[#101513] px-3 py-2 pr-9 text-sm text-white outline-none focus:border-emerald-500 disabled:opacity-50"
+        className="w-full min-w-40 appearance-none rounded-full border border-slate-200 bg-white px-4 py-2 pr-10 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100 disabled:opacity-50"
       >
         {tokens.length === 0 && (
           <option value="">{isLoading ? "Loading..." : "No tokens"}</option>

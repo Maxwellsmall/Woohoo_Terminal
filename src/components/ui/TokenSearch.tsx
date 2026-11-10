@@ -3,7 +3,6 @@ import { Search, X } from "lucide-react";
 
 import { useSelectedToken } from "../../app/TokenContext";
 
-
 export default function TokenSearch() {
   const { tokens, setSelectedToken, isLoading } = useSelectedToken();
 
@@ -33,8 +32,8 @@ export default function TokenSearch() {
 
   return (
     <div className="relative w-full max-w-md">
-      <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#101513] px-3 py-2 focus-within:border-emerald-500">
-        <Search size={17} className="shrink-0 text-gray-400" />
+      <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 transition focus-within:border-violet-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-violet-100">
+        <Search size={17} className="shrink-0 text-slate-400" />
 
         <input
           type="search"
@@ -53,7 +52,7 @@ export default function TokenSearch() {
           aria-label="Search tokens"
           aria-expanded={isOpen}
           aria-controls="token-search-results"
-          className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-gray-500"
+          className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
         />
 
         {query && (
@@ -64,7 +63,7 @@ export default function TokenSearch() {
               setIsOpen(false);
             }}
             aria-label="Clear search"
-            className="text-gray-400 hover:text-white"
+            className="text-slate-400 hover:text-slate-700"
           >
             <X size={16} />
           </button>
@@ -74,12 +73,14 @@ export default function TokenSearch() {
       {isOpen && (
         <div
           id="token-search-results"
-          className="absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-y-auto rounded-xl border border-white/10 bg-[#101513] p-2 shadow-2xl"
+          className="absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl"
         >
-          <div className="mb-2 px-2 text-xs text-gray-500">Demo Tokens</div>
+          <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            Demo Tokens
+          </div>
 
           {isLoading ? (
-            <p className="px-3 py-4 text-center text-sm text-gray-400">
+            <p className="px-3 py-4 text-center text-sm text-slate-500">
               Loading tokens...
             </p>
           ) : filteredTokens.length > 0 ? (
@@ -88,21 +89,23 @@ export default function TokenSearch() {
                 key={token.id}
                 type="button"
                 onClick={() => handleSelect(token.id)}
-                className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-white/5"
+                className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition hover:bg-violet-50"
               >
                 <div>
-                  <p className="text-sm font-medium text-white">{token.name}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {token.name}
+                  </p>
 
-                  <p className="text-xs text-gray-400">{token.network}</p>
+                  <p className="text-xs text-slate-500">{token.network}</p>
                 </div>
 
-                <span className="text-xs font-semibold text-emerald-400">
+                <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-600">
                   {token.symbol}
                 </span>
               </button>
             ))
           ) : (
-            <p className="px-3 py-4 text-center text-sm text-gray-400">
+            <p className="px-3 py-4 text-center text-sm text-slate-500">
               No matching tokens found.
             </p>
           )}
