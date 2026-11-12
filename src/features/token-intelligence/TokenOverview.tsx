@@ -5,16 +5,44 @@ interface TokenOverviewProps {
   token: Token;
 }
 
+interface CopyToast {
+  status: "success" | "error";
+  message: string;
+}
+
+function formatAmount(value: number | null): string {
+  if (value === null) return "Unavailable";
+
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 3,
+  }).format(value);
+}
+
 export default function TokenOverview({ token }: TokenOverviewProps) {
   const copyAddress = async () => {
     if (!token.contractAddress) return;
 
     try {
-      await navigator.clipboard.writeText(token.contractAddress);
-    } catch {
-      console.error("Unable to copy contract address");
+      await navigator.clipboard.writeText(address);
+      setCopyToast({
+        status: "success",
+        message: "Address copied to clipboard!",
+      });
+    } catch (error) {
+      console.error("Unable to copy address", error);
+      setCopyToast({
+        status: "error",
+        message: "Unable to copy address to clipboard.",
+      });
     }
   };
+
+  const addressRows = [
+    { label: "Pair", address: token.pairAddress },
+    { label: token.symbol, address: token.contractAddress },
+    { label: token.quoteSymbol ?? "Quote", address: token.quoteContractAddress },
+  ];
 
   return (
     <section className="border-b border-white/10 pb-5">
@@ -28,6 +56,18 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
 
           <p className="text-sm text-gray-400">{token.symbol}</p>
         </div>
+        {token.pairUrl && (
+          <a
+            href={token.pairUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open market pair"
+            title="Open market pair"
+            className="shrink-0 text-emerald-400 hover:text-emerald-300"
+          >
+            <ExternalLink size={14} />
+          </a>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -44,7 +84,6 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
             <span className="truncate text-xs text-gray-300">
               {token.contractAddress ?? "Not available"}
             </span>
-
             <button
               type="button"
               onClick={copyAddress}
@@ -52,10 +91,11 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
               aria-label="Copy contract address"
               className="ml-2 text-gray-400 transition hover:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <Copy size={15} />
+              <Copy size={12} />
             </button>
           </div>
-        </div>
+        ))}
+      </div>
 
         <button
           type="button"

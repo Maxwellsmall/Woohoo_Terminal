@@ -1,5 +1,14 @@
 export type SecurityStatus = "verified" | "unverified" | "unknown";
 
+export type MarketPeriod = "m5" | "h1" | "h6" | "h24";
+
+export interface TokenPeriodMetrics {
+  priceChangePct: number | null;
+  volumeUsd: number | null;
+  buys: number | null;
+  sells: number | null;
+}
+
 export interface TokenMetrics {
   priceUsd: number;
   marketCapUsd: number;

@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Wallet } from "lucide-react";
 
 export default function WalletButton() {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
   return (
     <button
       type="button"
