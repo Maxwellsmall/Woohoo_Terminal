@@ -201,7 +201,7 @@ export default function ActivityFeed() {
         title="ACTIVITY STREAM"
         action={
           <span className="activity-source">
-            GECKOTERMINAL · 24H TRADES
+            TERMINAL · 24H TRADES
           </span>
         }
       />
