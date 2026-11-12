@@ -1,8 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
+
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -10,12 +14,16 @@ import {
 import type { Token } from "../types";
 import { tokenService } from "../services/token.service";
 
+const REFRESH_INTERVAL_MS = 45_000;
+
 interface TokenContextType {
   selectedToken: Token | null;
   tokens: Token[];
   setSelectedToken: (token: Token) => void;
   isLoading: boolean;
+  isRefreshing: boolean;
   error: string | null;
+  refreshTokens: () => Promise<void>;
 }
 
 const TokenContext = createContext<TokenContextType | undefined>(undefined);
@@ -26,45 +34,73 @@ interface TokenProviderProps {
 
 export function TokenProvider({ children }: TokenProviderProps) {
   const [tokens, setTokens] = useState<Token[]>([]);
-  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
+  const [selectedPairId, setSelectedPairId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
+  const requestRef = useRef<AbortController | null>(null);
+  const hasLoadedDataRef = useRef(false);
 
-    async function loadTokens() {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const refreshTokens = useCallback(async () => {
+    if (requestRef.current && !requestRef.current.signal.aborted) return;
 
-        const data = await tokenService.getTokens();
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setIsLoading(!hasLoadedDataRef.current);
+    setIsRefreshing(true);
+    setError(null);
 
-        if (!active) return;
+    try {
+      const data = await tokenService.getTokens(controller.signal);
+      if (controller.signal.aborted || requestRef.current !== controller) return;
 
-        setTokens(data);
-        setSelectedToken((current) => {
-          return (
-            data.find((token) => token.id === current?.id) ?? data[0] ?? null
-          );
-        });
-      } catch {
-        if (active) {
-          setError("Unable to load token information.");
-        }
-      } finally {
-        if (active) {
-          setIsLoading(false);
-        }
+      setTokens(data);
+      setSelectedPairId((currentId) =>
+        data.some((token) => token.id === currentId)
+          ? currentId
+          : (data[0]?.id ?? null),
+      );
+      hasLoadedDataRef.current = true;
+    } catch (requestError) {
+      if (controller.signal.aborted || requestRef.current !== controller) return;
+
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to retrieve token information.",
+      );
+    } finally {
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+        setIsLoading(false);
+        setIsRefreshing(false);
       }
     }
+  }, []);
 
-    void loadTokens();
+  useEffect(() => {
+    void refreshTokens();
+    const intervalId = window.setInterval(
+      () => void refreshTokens(),
+      REFRESH_INTERVAL_MS,
+    );
 
     return () => {
-      active = false;
+      window.clearInterval(intervalId);
+      requestRef.current?.abort();
+      requestRef.current = null;
     };
+  }, [refreshTokens]);
+
+  const setSelectedToken = useCallback((token: Token) => {
+    setSelectedPairId(token.id);
   }, []);
+
+  const selectedToken = useMemo(
+    () => tokens.find((token) => token.id === selectedPairId) ?? null,
+    [tokens, selectedPairId],
+  );
 
   return (
     <TokenContext.Provider
@@ -73,7 +109,9 @@ export function TokenProvider({ children }: TokenProviderProps) {
         tokens,
         setSelectedToken,
         isLoading,
+        isRefreshing,
         error,
+        refreshTokens,
       }}
     >
       {children}

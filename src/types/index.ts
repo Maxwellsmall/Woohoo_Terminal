@@ -10,11 +10,16 @@ export interface TokenPeriodMetrics {
 }
 
 export interface TokenMetrics {
-  priceUsd: number;
-  marketCapUsd: number;
-  liquidityUsd: number;
-  volume24hUsd: number;
-  priceChange24h: number;
+  priceUsd: number | null;
+  priceNative: number | null;
+  marketCapUsd: number | null;
+  fdvUsd: number | null;
+  liquidityUsd: number | null;
+  pooledBase: number | null;
+  pooledQuote: number | null;
+  volume24hUsd: number | null;
+  priceChange24h: number | null;
+  periods: Record<MarketPeriod, TokenPeriodMetrics>;
 }
 
 export interface TokenSecurity {
@@ -30,6 +35,14 @@ export interface Token {
   network: string;
   contractAddress: string | null;
   logoUrl?: string;
+
+  dexId?: string;
+  pairAddress?: string;
+  pairUrl?: string;
+  quoteSymbol?: string;
+  quoteContractAddress?: string;
+  pairCreatedAt?: number | null;
+
   metrics: TokenMetrics;
   security: TokenSecurity;
 }

@@ -6,14 +6,45 @@ interface TokenMetricsProps {
   quoteSymbol: string;
 }
 
-const formatCurrency = (value: number): string => {
+const periods: { key: MarketPeriod; label: string }[] = [
+  { key: "m5", label: "5M" },
+  { key: "h1", label: "1H" },
+  { key: "h6", label: "6H" },
+  { key: "h24", label: "24H" },
+];
+
+function formatCurrency(value: number | null): string {
+  if (value === null) return "Unavailable";
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     notation: "compact",
     maximumFractionDigits: 2,
   }).format(value);
-};
+}
+
+function formatPrice(value: number | null, currency: string): string {
+  if (value === null) return "Unavailable";
+
+  if (currency === "USD") {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumSignificantDigits: 7,
+    }).format(value);
+  }
+
+  return `${new Intl.NumberFormat("en-US", {
+    maximumSignificantDigits: 7,
+  }).format(value)} ${currency}`;
+}
+
+function formatCount(value: number | null): string {
+  return value === null
+    ? "Unavailable"
+    : new Intl.NumberFormat("en-US", { notation: "compact" }).format(value);
+}
 
 export default function TokenMetrics({
   metrics,
@@ -35,29 +66,28 @@ export default function TokenMetrics({
   ];
 
   return (
-    <section className="border-b border-white/10 py-5">
-      <h3 className="mb-4 text-sm font-semibold text-white">Market Metrics</h3>
+    <section className="pt-3">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-[10px] font-semibold uppercase tracking-wide text-white">
+          Market data
+        </h3>
+        <span className="text-[8px] text-emerald-400">DEXSCREENER</span>
+      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <MetricCard
-          label="Price"
-          value={`$${metrics.priceUsd.toFixed(metrics.priceUsd < 1 ? 4 : 2)}`}
-        />
-
-        <MetricCard
-          label="Market Cap"
-          value={formatCurrency(metrics.marketCapUsd)}
-        />
-
-        <MetricCard
-          label="Liquidity"
-          value={formatCurrency(metrics.liquidityUsd)}
-        />
-
-        <MetricCard
-          label="24h Volume"
-          value={formatCurrency(metrics.volume24hUsd)}
-        />
+      <div className="grid grid-cols-2 gap-2">
+        {cards.map(({ label, value }) => (
+          <div
+            className="min-w-0 rounded-lg border border-white/10 bg-[#0b100e] p-2"
+            key={label}
+          >
+            <span className="block truncate text-[9px] uppercase tracking-wide text-gray-500">
+              {label}
+            </span>
+            <strong className="mt-1 block truncate text-xs font-semibold text-white" title={value}>
+              {value}
+            </strong>
+          </div>
+        ))}
       </div>
 
       <div className="mt-3">

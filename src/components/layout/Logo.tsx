@@ -13,19 +13,16 @@ export default function Logo({ size = 40, showText = true }: LogoProps) {
         alt="Woohoo logo"
         width={size}
         height={size}
-        className="rounded-full object-cover"
+        className="terminal-logo-image"
       />
       {showText && (
-        <div className="leading-tight">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-extrabold text-violet-600">
-              Woohoo <span className="text-slate-900">World</span>
+        <div className="terminal-logo-copy">
+          <div className="terminal-logo-title">
+            <h1>
+              WOOHOO
             </h1>
-            <span className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600">
-              DeFi
-            </span>
           </div>
-          <p className="text-xs text-slate-500">Multiverse Terminal</p>
+          <p>MARKET TERMINAL</p>
         </div>
       )}
     </div>

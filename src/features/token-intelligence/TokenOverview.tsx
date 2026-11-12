@@ -1,4 +1,5 @@
-import { Copy, ExternalLink } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle2, Copy, ExternalLink, X } from "lucide-react";
 import type { Token } from "../../types";
 
 interface TokenOverviewProps {
@@ -20,8 +21,18 @@ function formatAmount(value: number | null): string {
 }
 
 export default function TokenOverview({ token }: TokenOverviewProps) {
-  const copyAddress = async () => {
-    if (!token.contractAddress) return;
+  const [logoFailed, setLogoFailed] = useState(false);
+  const [copyToast, setCopyToast] = useState<CopyToast | null>(null);
+
+  useEffect(() => {
+    if (!copyToast) return;
+
+    const timeoutId = window.setTimeout(() => setCopyToast(null), 3000);
+    return () => window.clearTimeout(timeoutId);
+  }, [copyToast]);
+
+  const copyAddress = async (address: string | null | undefined) => {
+    if (!address) return;
 
     try {
       await navigator.clipboard.writeText(address);
@@ -45,16 +56,30 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
   ];
 
   return (
-    <section className="border-b border-white/10 pb-5">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15 text-lg font-bold text-emerald-400">
-          {token.symbol.slice(0, 2)}
-        </div>
+    <section className="border-b border-white/10 pb-3">
+      <div className="mb-3 flex items-center gap-2">
+        {token.logoUrl && !logoFailed ? (
+          <img
+            src={token.logoUrl}
+            alt={`${token.symbol} logo`}
+            className="h-9 w-9 rounded-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={() => setLogoFailed(true)}
+          />
+        ) : (
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-sm font-bold text-emerald-400">
+            {token.symbol.slice(0, 2)}
+          </div>
+        )}
 
-        <div>
-          <h2 className="text-lg font-semibold text-white">{token.name}</h2>
-
-          <p className="text-sm text-gray-400">{token.symbol}</p>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-sm font-semibold text-white">
+            {token.name}
+          </h2>
+          <p className="truncate text-xs text-gray-400">
+            {token.network} · {token.dexId ?? "DEX"} · {token.symbol}/
+            {token.quoteSymbol ?? "Unavailable"}
+          </p>
         </div>
         {token.pairUrl && (
           <a
@@ -70,26 +95,72 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
         )}
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-400">Network</span>
-
-          <span className="text-sm text-white">{token.network}</span>
+      <div className="mb-3 grid grid-cols-2 gap-2">
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+          <span className="block text-[9px] uppercase tracking-wide text-gray-500">
+            Pair created
+          </span>
+          <strong className="mt-1 block text-[10px] font-medium text-gray-200">
+            {token.pairCreatedAt == null
+              ? "Unavailable"
+              : new Date(token.pairCreatedAt).toLocaleString()}
+          </strong>
         </div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+          <span className="block text-[9px] uppercase tracking-wide text-gray-500">
+            Liquidity
+          </span>
+          <strong className="mt-1 block text-[10px] font-medium text-gray-200">
+            {token.metrics.liquidityUsd == null
+              ? "Unavailable"
+              : new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                  notation: "compact",
+                  maximumFractionDigits: 2,
+                }).format(token.metrics.liquidityUsd)}
+          </strong>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+          <span className="block truncate text-[9px] uppercase tracking-wide text-gray-500">
+            Pooled {token.symbol}
+          </span>
+          <strong className="mt-1 block truncate text-[10px] font-medium text-gray-200">
+            {formatAmount(token.metrics.pooledBase)}
+          </strong>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+          <span className="block truncate text-[9px] uppercase tracking-wide text-gray-500">
+            Pooled {token.quoteSymbol ?? "quote"}
+          </span>
+          <strong className="mt-1 block truncate text-[10px] font-medium text-gray-200">
+            {formatAmount(token.metrics.pooledQuote)}
+          </strong>
+        </div>
+      </div>
 
-        <div>
-          <p className="mb-2 text-sm text-gray-400">Contract Address</p>
-
-          <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-            <span className="truncate text-xs text-gray-300">
-              {token.contractAddress ?? "Not available"}
+      <div className="space-y-1">
+        {addressRows.map(({ label, address }) => (
+          <div
+            className="flex min-w-0 items-center gap-2 rounded-md bg-white/[0.03] px-2 py-1.5"
+            key={label}
+          >
+            <span className="w-10 shrink-0 text-[9px] text-gray-500">
+              {label}
+            </span>
+            <span
+              className="min-w-0 flex-1 truncate font-mono text-[9px] text-gray-300"
+              title={address ?? undefined}
+            >
+              {address ?? "Unavailable"}
             </span>
             <button
               type="button"
-              onClick={copyAddress}
-              disabled={!token.contractAddress}
-              aria-label="Copy contract address"
-              className="ml-2 text-gray-400 transition hover:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => void copyAddress(address)}
+              disabled={!address}
+              aria-label={`Copy ${label} address`}
+              title={`Copy ${label} address`}
+              className="shrink-0 text-gray-500 transition hover:text-emerald-400 disabled:opacity-40"
             >
               <Copy size={12} />
             </button>
@@ -97,15 +168,32 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
         ))}
       </div>
 
-        <button
-          type="button"
-          disabled
-          className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-white/10 py-2 text-sm text-gray-500"
+      {copyToast && (
+        <div
+          role={copyToast.status === "success" ? "status" : "alert"}
+          aria-live={copyToast.status === "success" ? "polite" : "assertive"}
+          className={`fixed bottom-4 right-4 z-50 flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-md px-4 py-3 text-sm shadow-lg ${
+            copyToast.status === "success"
+              ? "bg-green-200 text-gray-900"
+              : "bg-red-200 text-red-950"
+          }`}
         >
-          View on Explorer
-          <ExternalLink size={14} />
-        </button>
-      </div>
+          {copyToast.status === "success" ? (
+            <CheckCircle2 size={16} aria-hidden="true" />
+          ) : (
+            <X size={16} aria-hidden="true" />
+          )}
+          <span>{copyToast.message}</span>
+          <button
+            type="button"
+            aria-label="Close notification"
+            onClick={() => setCopyToast(null)}
+            className="ml-2 rounded p-1 transition hover:bg-black/10"
+          >
+            <X size={14} aria-hidden="true" />
+          </button>
+        </div>
+      )}
     </section>
   );
 }

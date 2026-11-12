@@ -1,80 +1,177 @@
-import { Settings2, Terminal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Menu, Settings2, X } from "lucide-react";
 
-import TokenSearch from "../ui/TokenSearch";
-import TokenSelector from "../ui/TokenSelector";
+import { usePreferences, type ThemePreference } from "../../app/PreferencesContext";
 import MarketTicker from "../ui/MarketTicker";
-import NetworkIndicator from "../ui/NetworkIndicator";
+import TokenSelector from "../ui/TokenSelector";
 import WalletButton from "../ui/WalletButton";
 import Logo from "./Logo";
 
 export default function TerminalHeader() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const menuToggleRef = useRef<HTMLButtonElement>(null);
+  const settingsToggleRef = useRef<HTMLButtonElement>(null);
+  const { theme, setTheme, showVolume, setShowVolume, storageError } =
+    usePreferences();
+
+  useEffect(() => {
+    if (!mobileMenuOpen && !settingsOpen) return;
+
+    const closePopoversOnPageScroll = (event: Event) => {
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        (target.closest(".terminal-header-nav") ||
+          target.closest(".terminal-settings-popover"))
+      ) {
+        return;
+      }
+
+      setMobileMenuOpen(false);
+      setSettingsOpen(false);
+    };
+
+    document.addEventListener("scroll", closePopoversOnPageScroll, {
+      capture: true,
+      passive: true,
+    });
+
+    return () =>
+      document.removeEventListener("scroll", closePopoversOnPageScroll, true);
+  }, [mobileMenuOpen, settingsOpen]);
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      menuToggleRef.current?.focus();
+    }
+  };
+
   return (
-    <header className="relative z-30 border-b border-slate-200 bg-white shadow-sm">
-      <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 py-3 xl:flex-nowrap">
-        {/* Brand (subtitle now lives inside Logo) */}
-        <div className="flex shrink-0 items-center">
-          <Logo showText={true} />
+    <header
+      className="terminal-header"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          if (settingsOpen) {
+            setSettingsOpen(false);
+            settingsToggleRef.current?.focus();
+          } else if (mobileMenuOpen) {
+            closeMobileMenu();
+          }
+        }
+      }}
+    >
+      <div className="terminal-header-main">
+        <div className="terminal-brand">
+          <Logo />
         </div>
 
-        {/* Terminal navigation */}
-        <nav
-          aria-label="Terminal navigation"
-          className="hidden items-center gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-sm lg:flex"
+        <button
+          ref={menuToggleRef}
+          type="button"
+          className="mobile-menu-toggle"
+          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-controls="terminal-navigation"
+          aria-expanded={mobileMenuOpen}
+          onClick={() => setMobileMenuOpen((open) => !open)}
         >
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-full bg-violet-600 px-4 py-1.5 text-xs font-semibold text-white"
-          >
-            <Terminal size={13} />
-            Terminal
-          </button>
+          {mobileMenuOpen ? <X size={19} /> : <Menu size={19} />}
+        </button>
 
-          <button
-            type="button"
-            disabled
-            title="Swap functionality is not implemented"
-            className="cursor-not-allowed rounded-full px-4 py-1.5 text-xs text-slate-400"
-          >
-            Swap
-          </button>
+        <nav
+          id="terminal-navigation"
+          aria-label="Market navigation"
+          className={`terminal-header-nav ${mobileMenuOpen ? "is-open" : ""}`}
+        >
+          <div className="terminal-header-actions">
+            <div className="terminal-settings">
+              <button
+                ref={settingsToggleRef}
+                type="button"
+                aria-label="Settings"
+                aria-controls="terminal-settings-panel"
+                aria-expanded={settingsOpen}
+                className="terminal-icon-button"
+                onClick={() => setSettingsOpen((open) => !open)}
+              >
+                <Settings2 size={16} />
+                <span>Settings</span>
+              </button>
+              {settingsOpen && (
+                <section
+                  id="terminal-settings-panel"
+                  className="terminal-settings-popover"
+                  aria-label="Display and market settings"
+                >
+                  <div className="settings-popover-heading">
+                    <h2>Settings</h2>
+                    <button
+                      type="button"
+                      aria-label="Close settings"
+                      onClick={() => setSettingsOpen(false)}
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
+
+                  <div className="settings-section">
+                    <span className="settings-label" id="theme-options-label">
+                      Theme
+                    </span>
+                    <div
+                      className="settings-theme-options"
+                      role="group"
+                      aria-labelledby="theme-options-label"
+                    >
+                      {(["dark", "light", "system"] as const).map(
+                        (themeOption: ThemePreference) => (
+                          <button
+                            key={themeOption}
+                            type="button"
+                            aria-pressed={theme === themeOption}
+                            onClick={() => setTheme(themeOption)}
+                          >
+                            {themeOption[0].toUpperCase() +
+                              themeOption.slice(1)}
+                          </button>
+                        ),
+                      )}
+                    </div>
+                  </div>
+
+                  <label className="settings-volume-option">
+                    <span>Show chart volume</span>
+                    <input
+                      type="checkbox"
+                      checked={showVolume}
+                      onChange={(event) => setShowVolume(event.target.checked)}
+                    />
+                  </label>
+
+                  <div className="settings-section">
+                    <TokenSelector />
+                    <p className="settings-data-sources">
+                      Pair metrics: DexScreener · Historical candles:
+                      GeckoTerminal
+                    </p>
+                  </div>
+
+                  {storageError && (
+                    <p className="settings-storage-error" role="status">
+                      {storageError}
+                    </p>
+                  )}
+                </section>
+              )}
+            </div>
+            <WalletButton />
+          </div>
         </nav>
 
-        {/* Search */}
-        <div className="order-3 w-full min-w-0 xl:order-0 xl:ml-auto xl:w-auto xl:flex-1 xl:max-w-sm">
-          <TokenSearch />
+        <div className="terminal-header-ticker">
+          <MarketTicker />
         </div>
-
-        {/* Market and token controls */}
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <div className="hidden 2xl:block">
-            <MarketTicker />
-          </div>
-
-          <div className="hidden md:block">
-            <TokenSelector />
-          </div>
-
-          <NetworkIndicator />
-        </div>
-
-        {/* Settings and wallet */}
-        <div className="ml-auto flex shrink-0 items-center gap-2 xl:ml-0">
-          <button
-            type="button"
-            aria-label="Settings"
-            title="Settings are not implemented yet"
-            className="rounded-full border border-slate-200 bg-white p-2 text-slate-500 transition hover:bg-slate-50 hover:text-violet-600"
-          >
-            <Settings2 size={16} />
-          </button>
-
-          <WalletButton />
-        </div>
-      </div>
-
-      {/* Compact ticker for medium screens */}
-      <div className="border-t border-slate-100 px-4 py-2 2xl:hidden">
-        <MarketTicker />
       </div>
     </header>
   );

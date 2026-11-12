@@ -1,62 +1,73 @@
 import { useEffect, useState } from "react";
+import { useSelectedToken } from "../../app/TokenContext";
+import { getMarketCandles } from "../../services/market.service";
+import type { Candle, Timeframe } from "../../services/market.service";
 
-import {
-  getMarketCandles,
-  type Candle,
-  type Timeframe,
-} from "../../services/market.service";
-
-interface MarketState {
+interface CandleState {
+  key: string;
   candles: Candle[];
   loading: boolean;
   error: string | null;
 }
 
 export function useMarketCandles(timeframe: Timeframe) {
-  const [state, setState] = useState<MarketState>({
-    candles: [],
-    loading: true,
-    error: null,
-  });
+  const { selectedToken } = useSelectedToken();
+  const network = selectedToken?.network ?? "";
+  const pairAddress = selectedToken?.pairAddress ?? "";
+  const requestKey = `${network}:${pairAddress}:${timeframe}`;
+  const [state, setState] = useState<CandleState | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    async function load() {
-      setState((previous) => ({
-        ...previous,
-        loading: true,
-        error: null,
-      }));
+    if (!network || !pairAddress) return () => controller.abort();
 
+    async function loadCandles() {
       try {
-        const candles = await getMarketCandles(timeframe, controller.signal);
+        const candles = await getMarketCandles(
+          network,
+          pairAddress,
+          timeframe,
+          controller.signal,
+        );
 
-        if (!controller.signal.aborted) {
-          setState({
-            candles,
-            loading: false,
-            error: null,
-          });
-        }
-      } catch (error) {
         if (controller.signal.aborted) return;
-
         setState({
+          key: requestKey,
+          candles,
+          loading: false,
+          error:
+            candles.length === 0
+              ? "No historical candles are available for this pair and timeframe."
+              : null,
+        });
+      } catch (requestError) {
+        if (controller.signal.aborted) return;
+        setState({
+          key: requestKey,
           candles: [],
           loading: false,
           error:
-            error instanceof Error
-              ? error.message
-              : "Unable to load market data",
+            requestError instanceof Error
+              ? requestError.message
+              : "Unable to load historical market data.",
         });
       }
     }
 
-    void load();
-
+    void loadCandles();
     return () => controller.abort();
-  }, [timeframe]);
+  }, [network, pairAddress, requestKey, timeframe]);
+
+  if (!state || state.key !== requestKey) {
+    return {
+      candles: [],
+      loading: Boolean(network && pairAddress),
+      error: network && pairAddress
+        ? null
+        : "Select a token with an available trading pair.",
+    };
+  }
 
   return state;
 }
