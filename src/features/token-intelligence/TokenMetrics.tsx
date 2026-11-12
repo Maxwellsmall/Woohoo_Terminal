@@ -91,7 +91,7 @@ export default function TokenMetrics({
       </div>
 
       <div className="mt-3">
-        <div className="mb-2 grid grid-cols-4 rounded-md bg-white/[0.04] p-0.5">
+        <div className="mb-2 grid grid-cols-4 rounded-md bg-white/4 p-0.5">
           {periods.map(({ key, label }) => {
             const change = metrics.periods[key].priceChangePct;
             const positive = change !== null && change >= 0;
@@ -127,7 +127,7 @@ export default function TokenMetrics({
           })}
         </div>
 
-        <div className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-md border border-white/10 bg-white/[0.02] p-2">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-md border border-white/10 bg-white/2 p-2">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[9px] text-gray-500">Transactions</span>
             <strong className="text-[9px] text-gray-200">

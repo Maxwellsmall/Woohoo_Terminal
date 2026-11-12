@@ -96,7 +96,7 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
       </div>
 
       <div className="mb-3 grid grid-cols-2 gap-2">
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+        <div className="rounded-lg border border-white/10 bg-white/3 p-2">
           <span className="block text-[9px] uppercase tracking-wide text-gray-500">
             Pair created
           </span>
@@ -106,7 +106,7 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
               : new Date(token.pairCreatedAt).toLocaleString()}
           </strong>
         </div>
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+        <div className="rounded-lg border border-white/10 bg-white/3 p-2">
           <span className="block text-[9px] uppercase tracking-wide text-gray-500">
             Liquidity
           </span>
@@ -121,7 +121,7 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
                 }).format(token.metrics.liquidityUsd)}
           </strong>
         </div>
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+        <div className="rounded-lg border border-white/10 bg-white/3 p-2">
           <span className="block truncate text-[9px] uppercase tracking-wide text-gray-500">
             Pooled {token.symbol}
           </span>
@@ -129,7 +129,7 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
             {formatAmount(token.metrics.pooledBase)}
           </strong>
         </div>
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+        <div className="rounded-lg border border-white/10 bg-white/3 p-2">
           <span className="block truncate text-[9px] uppercase tracking-wide text-gray-500">
             Pooled {token.quoteSymbol ?? "quote"}
           </span>
@@ -142,7 +142,7 @@ export default function TokenOverview({ token }: TokenOverviewProps) {
       <div className="space-y-1">
         {addressRows.map(({ label, address }) => (
           <div
-            className="flex min-w-0 items-center gap-2 rounded-md bg-white/[0.03] px-2 py-1.5"
+            className="flex min-w-0 items-center gap-2 rounded-md bg-white/3 px-2 py-1.5"
             key={label}
           >
             <span className="w-10 shrink-0 text-[9px] text-gray-500">
