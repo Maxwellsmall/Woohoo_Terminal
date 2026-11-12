@@ -98,7 +98,10 @@ export default function TokenIntelligence() {
 
       <TokenOverview token={selectedToken} />
 
-      <TokenMetrics metrics={selectedToken.metrics} />
+      <TokenMetrics
+        metrics={selectedToken.metrics}
+        quoteSymbol={selectedToken.quoteSymbol ?? "USD"}
+      />
     </aside>
   );
 }

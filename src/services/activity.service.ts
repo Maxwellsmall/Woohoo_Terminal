@@ -89,14 +89,23 @@ function mapTrade(
   const tokenAmount = baseIsWoohoo ? baseAmount : quoteIsWoohoo ? quoteAmount : null;
   const quoteAmountValue = baseIsWoohoo ? quoteAmount : quoteIsWoohoo ? baseAmount : null;
   const usdValue = finiteNumber(attributes.volume_in_usd);
+  const tokenPriceUsd = finiteNumber(
+    baseIsWoohoo
+      ? attributes.price_from_in_usd
+      : attributes.price_to_in_usd,
+  );
   const explorerUrl = explorerHost
-    ? new URL(
-        token.network.toLowerCase() === "solana"
-          ? `/tx/${encodeURIComponent(transactionHash)}`
-          : `/tx/${encodeURIComponent(transactionHash)}`,
-        explorerHost,
-      ).toString()
+    ? new URL(`/tx/${encodeURIComponent(transactionHash)}`, explorerHost).toString()
     : null;
+  const walletExplorerUrl =
+    walletAddress && explorerHost
+      ? new URL(
+          token.network.toLowerCase() === "solana"
+            ? `/account/${encodeURIComponent(walletAddress)}`
+            : `/address/${encodeURIComponent(walletAddress)}`,
+          explorerHost,
+        ).toString()
+      : null;
 
   return {
     id,
@@ -106,7 +115,10 @@ function mapTrade(
     tokenAmount,
     quoteAmount: quoteAmountValue,
     usdValue: usdValue !== null && usdValue >= 0 ? usdValue : null,
+    tokenPriceUsd:
+      tokenPriceUsd !== null && tokenPriceUsd > 0 ? tokenPriceUsd : null,
     walletAddress,
+    walletExplorerUrl,
     pairAddress: token.pairAddress ?? "",
     network: token.network,
     dex: token.dexId ?? null,

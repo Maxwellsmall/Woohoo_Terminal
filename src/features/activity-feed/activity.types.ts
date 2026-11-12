@@ -8,7 +8,9 @@ export interface TokenActivity {
   tokenAmount: number | null;
   quoteAmount: number | null;
   usdValue: number | null;
+  tokenPriceUsd: number | null;
   walletAddress: string | null;
+  walletExplorerUrl: string | null;
   pairAddress: string;
   network: string;
   dex: string | null;

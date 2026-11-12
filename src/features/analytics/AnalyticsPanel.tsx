@@ -16,11 +16,10 @@ export default function AnalyticsPanel() {
 
   const metrics = selectedToken
     ? [
-        ["MARKET CAP", formatCurrency(selectedToken.metrics.marketCapUsd)],
-        ["FDV", formatCurrency(selectedToken.metrics.fdvUsd)],
-        ["LIQUIDITY", formatCurrency(selectedToken.metrics.liquidityUsd)],
-        ["24H VOLUME", formatCurrency(selectedToken.metrics.volume24hUsd)],
-      ]
+      ["MARKET CAP", formatCurrency(selectedToken.metrics.marketCapUsd)],
+      ["LIQUIDITY", formatCurrency(selectedToken.metrics.liquidityUsd)],
+      ["24H VOLUME", formatCurrency(selectedToken.metrics.volume24hUsd)],
+    ]
     : [];
 
   return (
@@ -38,9 +37,6 @@ export default function AnalyticsPanel() {
               <strong>{value}</strong>
             </section>
           ))}
-          <p className="analytics-disclaimer">
-            Portfolio holdings and network statistics are not connected.
-          </p>
         </div>
       ) : (
         <p className="analytics-empty" role="status">

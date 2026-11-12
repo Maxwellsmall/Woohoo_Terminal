@@ -1,19 +1,30 @@
-import { useMemo, useState } from "react";
-import { Layers3 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent } from "react";
+import { Layers3, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import PanelHeading from "../../components/layout/PanelHeading";
 import { useMarketCandles } from "./useMarketCandles";
 import { useSelectedToken } from "../../app/TokenContext";
+import { usePreferences } from "../../app/PreferencesContext";
 import type { Timeframe } from "../../services/market.service";
 
 const timeframes: Timeframe[] = ["1m", "5m", "15m", "1h", "4h", "1d"];
 
 type ChartMode = "Candles" | "Line";
+type CrosshairPosition = {
+  x: number;
+  y: number;
+  timeX: number;
+  price: string;
+  time: string;
+};
 
 const WIDTH = 850;
 const HEIGHT = 300;
 const PRICE_TOP = 12;
 const PRICE_BOTTOM = 235;
-const VOLUME_BOTTOM = 292;
+const MIN_ZOOM = 0.75;
+const MAX_ZOOM = 4;
+const ZOOM_STEP = 0.25;
 
 function formatPrice(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return "Unavailable";
@@ -51,10 +62,22 @@ function formatTime(timestamp: number, timeframe: Timeframe): string {
 export default function MarketChart() {
   const [timeframe, setTimeframe] = useState<Timeframe>("15m");
   const [mode, setMode] = useState<ChartMode>("Candles");
-  const [showVolume, setShowVolume] = useState(true);
+  const [zoomState, setZoomState] = useState({ key: "", value: 1 });
+  const [crosshair, setCrosshair] = useState<CrosshairPosition | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const priceSvgRef = useRef<SVGSVGElement>(null);
 
   const { selectedToken } = useSelectedToken();
+  const { showVolume, setShowVolume } = usePreferences();
   const { candles, loading, error } = useMarketCandles(timeframe);
+  const tokenKey = `${selectedToken?.network ?? ""}:${selectedToken?.pairAddress ?? ""}`;
+  const chartKey = `${tokenKey}:${timeframe}`;
+  const zoom = zoomState.key === chartKey ? zoomState.value : 1;
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ left: 0, top: 0 });
+  }, [chartKey]);
 
   const chart = useMemo(() => {
     if (candles.length === 0) return [];
@@ -102,6 +125,61 @@ export default function MarketChart() {
   const chartMin = minPrice - priceRange * 0.1;
   const chartMax = maxPrice + priceRange * 0.1;
   const chartRange = chartMax - chartMin || 1;
+  const timeAxisTicks =
+    candles.length > 0
+      ? [0, 0.25, 0.5, 0.75, 1].map((position) => {
+          const index = Math.min(
+            candles.length - 1,
+            Math.floor(position * (candles.length - 1)),
+          );
+
+          return {
+            position: chart[index].x,
+            time: formatTime(candles[index].time, timeframe),
+          };
+        })
+      : [];
+
+  const handleChartPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "touch" || candles.length === 0) return;
+
+    const stageBounds = stageRef.current?.getBoundingClientRect();
+    const svgBounds = priceSvgRef.current?.getBoundingClientRect();
+    if (!stageBounds || !svgBounds || svgBounds.width === 0 || svgBounds.height === 0) {
+      return;
+    }
+
+    const chartX = Math.max(
+      0,
+      Math.min(((event.clientX - svgBounds.left) / svgBounds.width) * WIDTH, WIDTH),
+    );
+    const chartY = Math.max(
+      PRICE_TOP,
+      Math.min(((event.clientY - svgBounds.top) / svgBounds.height) * HEIGHT, PRICE_BOTTOM),
+    );
+    const candleIndex = Math.min(
+      candles.length - 1,
+      Math.floor((chartX / WIDTH) * candles.length),
+    );
+    const price = chartMin +
+      ((PRICE_BOTTOM - chartY) / (PRICE_BOTTOM - PRICE_TOP)) * chartRange;
+    const stageX = Math.max(
+      0,
+      Math.min(event.clientX - stageBounds.left, stageBounds.width),
+    );
+    const stageY = Math.max(
+      8,
+      Math.min(event.clientY - stageBounds.top, stageBounds.height - 8),
+    );
+
+    setCrosshair({
+      x: stageX,
+      y: stageY,
+      timeX: Math.max(38, Math.min(stageX, stageBounds.width - 38)),
+      price: formatPrice(price),
+      time: formatTime(candles[candleIndex].time, timeframe),
+    });
+  };
 
   const priceLabels = [0, 1, 2, 3].map(
     (index) => chartMax - (chartRange * index) / 3,
@@ -119,6 +197,7 @@ export default function MarketChart() {
       <PanelHeading
         title={tokenName}
         description={`${selectedToken?.name ?? "Select a token"} · ${selectedToken?.dexId ?? "DEX"}`}
+        compact
         action={
           <span className="chart-change">
             {selectedToken?.metrics.priceUsd != null
@@ -190,22 +269,45 @@ export default function MarketChart() {
 
       <div
         className="chart-stage"
-        role="img"
+        ref={stageRef}
+        role="group"
         aria-label={`${mode} chart for ${tokenName} at ${timeframe}`}
+        onPointerMove={handleChartPointerMove}
+        onPointerLeave={() => setCrosshair(null)}
+        onPointerOut={(event) => {
+          const nextTarget = event.relatedTarget;
+          if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+            setCrosshair(null);
+          }
+        }}
       >
-        {candles.length > 0 && (
-          <div className="chart-price-labels">
-            {priceLabels.map((price, index) => (
-              <span key={index}>{formatPrice(price)}</span>
-            ))}
-          </div>
-        )}
-
-        <svg
-          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-          preserveAspectRatio="none"
-          className="price-svg"
+        <div
+          className="chart-scroll"
+          ref={scrollRef}
+          aria-label="Scrollable chart plot"
+          tabIndex={0}
         >
+          <div
+            className="chart-scroll-content"
+            style={{
+              width: `${WIDTH * zoom}px`,
+              height: `${HEIGHT * zoom}px`,
+            }}
+          >
+            {candles.length > 0 && (
+              <div className="chart-price-labels">
+                {priceLabels.map((price, index) => (
+                  <span key={index}>{formatPrice(price)}</span>
+                ))}
+              </div>
+            )}
+
+            <svg
+              viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+              preserveAspectRatio="none"
+              className="price-svg"
+              ref={priceSvgRef}
+            >
           {[35, 90, 145, 200, 255].map((y) => (
             <line
               key={y}
@@ -248,18 +350,67 @@ export default function MarketChart() {
             <polyline points={linePoints} className="chart-line" />
           )}
 
-          {showVolume &&
-            chart.map((c, index) => (
-              <rect
-                key={`volume-${index}`}
-                x={c.x - c.candleWidth / 2}
-                y={VOLUME_BOTTOM - c.volumeHeight}
-                width={c.candleWidth}
-                height={c.volumeHeight}
-                className={c.close >= c.open ? "volume-up" : "volume-down"}
-              />
-            ))}
-        </svg>
+            </svg>
+
+            {showVolume && (
+              <svg
+                viewBox={`0 0 ${WIDTH} 30`}
+                preserveAspectRatio="none"
+                className="chart-volume-svg"
+                aria-hidden="true"
+              >
+                {chart.map((c, index) => (
+                  <rect
+                    key={`volume-${index}`}
+                    x={c.x - c.candleWidth / 2}
+                    y={30 - c.volumeHeight}
+                    width={c.candleWidth}
+                    height={c.volumeHeight}
+                    className={c.close >= c.open ? "volume-up" : "volume-down"}
+                  />
+                ))}
+              </svg>
+            )}
+
+            {!loading && !error && candles.length > 0 && (
+              <div className="chart-time-labels">
+                {timeAxisTicks.map((tick, index) => (
+                  <span
+                    key={`${tick.position}-${index}`}
+                    style={{ left: `${(tick.position / WIDTH) * 100}%` }}
+                  >
+                    {tick.time}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {crosshair && (
+          <div className="chart-crosshair" aria-hidden="true">
+            <span
+              className="chart-crosshair-line chart-crosshair-vertical"
+              style={{ left: crosshair.x }}
+            />
+            <span
+              className="chart-crosshair-line chart-crosshair-horizontal"
+              style={{ top: crosshair.y }}
+            />
+            <span
+              className="chart-crosshair-price"
+              style={{ top: crosshair.y }}
+            >
+              {crosshair.price}
+            </span>
+            <span
+              className="chart-crosshair-time"
+              style={{ left: crosshair.timeX }}
+            >
+              {crosshair.time}
+            </span>
+          </div>
+        )}
 
         {loading && (
           <div role="status" className="chart-state">
@@ -273,33 +424,62 @@ export default function MarketChart() {
           </div>
         )}
 
-        {!loading && !error && candles.length > 0 && (
-          <div className="chart-time-labels">
-            {[0, 0.25, 0.5, 0.75, 1].map((position) => {
-              const index = Math.min(
-                candles.length - 1,
-                Math.floor(position * (candles.length - 1)),
-              );
-
-              return (
-                <span key={position}>
-                  {formatTime(candles[index].time, timeframe)}
-                </span>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       <div className="chart-bottom">
-        <span>
-          <i className="legend-green" /> {tokenName}
-        </span>
+        <div className="chart-bottom-pair">
+          <span>
+            <i className="legend-green" /> {tokenName}
+          </span>
+          <button onClick={() => setShowVolume(!showVolume)}>
+            <Layers3 size={11} /> Volume {showVolume ? "ON" : "OFF"}
+          </button>
+        </div>
 
-        <button onClick={() => setShowVolume((value) => !value)}>
-          <Layers3 size={11} /> Volume {showVolume ? "ON" : "OFF"}
-        </button>
-
+        <div className="chart-zoom-controls" aria-label="Chart zoom controls">
+          <button
+            type="button"
+            aria-label="Zoom out"
+            title="Zoom out"
+            disabled={zoom <= MIN_ZOOM}
+            onClick={() =>
+              setZoomState({
+                key: chartKey,
+                value: Math.max(MIN_ZOOM, zoom - ZOOM_STEP),
+              })
+            }
+          >
+            <ZoomOut size={12} />
+          </button>
+          <span className="chart-zoom-level" aria-live="polite">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            type="button"
+            aria-label="Zoom in"
+            title="Zoom in"
+            disabled={zoom >= MAX_ZOOM}
+            onClick={() =>
+              setZoomState({
+                key: chartKey,
+                value: Math.min(MAX_ZOOM, zoom + ZOOM_STEP),
+              })
+            }
+          >
+            <ZoomIn size={12} />
+          </button>
+          <button
+            type="button"
+            aria-label="Reset chart zoom and scroll"
+            title="Reset chart zoom and scroll"
+            onClick={() => {
+              setZoomState({ key: chartKey, value: 1 });
+              scrollRef.current?.scrollTo({ left: 0, top: 0 });
+            }}
+          >
+            <RotateCcw size={11} />
+          </button>
+        </div>
         <span className="chart-live">
           HISTORICAL OHLCV · GECKOTERMINAL
         </span>

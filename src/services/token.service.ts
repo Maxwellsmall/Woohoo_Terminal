@@ -1,4 +1,4 @@
-import type { Token } from "../types";
+import type { MarketPeriod, Token, TokenPeriodMetrics } from "../types";
 
 const TOKEN_ADDRESS = "0x9244708F469199C2e1bC613d31e615E33Bf87777";
 const DEXSCREENER_URL = `https://api.dexscreener.com/latest/dex/tokens/${TOKEN_ADDRESS}`;
@@ -32,6 +32,22 @@ function nestedRecord(value: unknown, key: string): JsonRecord | null {
 
 function nestedValue(value: unknown, key: string): unknown {
   return isRecord(value) ? value[key] : null;
+}
+
+function mapPeriodMetrics(
+  period: MarketPeriod,
+  transactions: JsonRecord,
+  volumes: JsonRecord,
+  priceChanges: JsonRecord,
+): TokenPeriodMetrics {
+  const periodTransactions = nestedRecord(transactions, period);
+
+  return {
+    priceChangePct: finiteNumber(nestedValue(priceChanges, period)),
+    volumeUsd: finiteNumber(nestedValue(volumes, period)),
+    buys: finiteNumber(periodTransactions?.buys),
+    sells: finiteNumber(periodTransactions?.sells),
+  };
 }
 
 function safeDexscreenerUrl(value: unknown): string | undefined {
@@ -83,6 +99,17 @@ function mapDexPair(value: unknown): Token | null {
   const liquidity = nestedValue(value.liquidity, "usd");
   const volume = nestedValue(value.volume, "h24");
   const priceChange = nestedValue(value.priceChange, "h24");
+  const liquidityBase = nestedValue(value.liquidity, "base");
+  const liquidityQuote = nestedValue(value.liquidity, "quote");
+  const pairTransactions = isRecord(value.txns) ? value.txns : {};
+  const pairVolumes = isRecord(value.volume) ? value.volume : {};
+  const pairPriceChanges = isRecord(value.priceChange) ? value.priceChange : {};
+  const pairPeriods = {
+    m5: mapPeriodMetrics("m5", pairTransactions, pairVolumes, pairPriceChanges),
+    h1: mapPeriodMetrics("h1", pairTransactions, pairVolumes, pairPriceChanges),
+    h6: mapPeriodMetrics("h6", pairTransactions, pairVolumes, pairPriceChanges),
+    h24: mapPeriodMetrics("h24", pairTransactions, pairVolumes, pairPriceChanges),
+  };
   const info = isRecord(value.info) ? value.info : null;
   const pairCreatedAt = finiteNumber(value.pairCreatedAt);
   const imageUrl = nonEmptyString(info?.imageUrl);
@@ -103,11 +130,15 @@ function mapDexPair(value: unknown): Token | null {
     pairCreatedAt,
     metrics: {
       priceUsd: finiteNumber(value.priceUsd),
+      priceNative: finiteNumber(value.priceNative),
       marketCapUsd: finiteNumber(value.marketCap),
       fdvUsd: finiteNumber(value.fdv),
       liquidityUsd: finiteNumber(liquidity),
+      pooledBase: finiteNumber(liquidityBase),
+      pooledQuote: finiteNumber(liquidityQuote),
       volume24hUsd: finiteNumber(volume),
       priceChange24h: finiteNumber(priceChange),
+      periods: pairPeriods,
     },
     security: {
       contractVerification: "unknown",

@@ -1,12 +1,25 @@
 export type SecurityStatus = "verified" | "unverified" | "unknown";
 
+export type MarketPeriod = "m5" | "h1" | "h6" | "h24";
+
+export interface TokenPeriodMetrics {
+  priceChangePct: number | null;
+  volumeUsd: number | null;
+  buys: number | null;
+  sells: number | null;
+}
+
 export interface TokenMetrics {
   priceUsd: number | null;
+  priceNative: number | null;
   marketCapUsd: number | null;
   fdvUsd: number | null;
   liquidityUsd: number | null;
+  pooledBase: number | null;
+  pooledQuote: number | null;
   volume24hUsd: number | null;
   priceChange24h: number | null;
+  periods: Record<MarketPeriod, TokenPeriodMetrics>;
 }
 
 export interface TokenSecurity {

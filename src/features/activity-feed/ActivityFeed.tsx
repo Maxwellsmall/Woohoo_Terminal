@@ -24,7 +24,7 @@ interface ActivityState {
   updatedAt: number | null;
 }
 
-function formatAmount(value: number | null, maximumFractionDigits = 4): string {
+function formatAmount(value: number | null, maximumFractionDigits = 6): string {
   if (value === null) return "Unavailable";
 
   return new Intl.NumberFormat("en-US", {
@@ -39,9 +39,29 @@ function formatUsd(value: number | null): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    notation: value >= 1_000 ? "compact" : "standard",
-    maximumFractionDigits: value >= 1_000 ? 2 : 4,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
   }).format(value);
+}
+
+function formatTokenPrice(value: number | null): string {
+  if (value === null) return "Unavailable";
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumSignificantDigits: 6,
+  }).format(value);
+}
+
+function formatTransactionTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
 function formatRelativeTime(timestamp: number, now: number): string {
@@ -162,7 +182,9 @@ export default function ActivityFeed() {
         activity.kind,
         activity.dex ?? "",
         activity.tokenAmount?.toString() ?? "",
+        activity.quoteAmount?.toString() ?? "",
         activity.usdValue?.toString() ?? "",
+        activity.tokenPriceUsd?.toString() ?? "",
       ]
         .join(" ")
         .toLowerCase();
@@ -246,57 +268,78 @@ export default function ActivityFeed() {
         {visibleActivities.map((activity) => (
           <article className="activity-item" key={activity.id}>
             <div className="activity-meta">
+              <time
+                dateTime={new Date(activity.timestamp).toISOString()}
+                title={formatRelativeTime(activity.timestamp, now)}
+              >
+                {formatTransactionTime(activity.timestamp)}
+              </time>
               <span className={`activity-kind ${activity.kind}`}>
                 {activity.kind === "unknown"
                   ? "UNKNOWN"
                   : activity.kind.toUpperCase()}
               </span>
-              <time dateTime={new Date(activity.timestamp).toISOString()}>
-                {formatRelativeTime(activity.timestamp, now)}
-              </time>
             </div>
 
-            <div className="activity-amounts">
-              <strong>
-                {formatAmount(activity.tokenAmount)}{" "}
-                {selectedToken?.symbol ?? "tokens"}
-              </strong>
-              <span>{formatUsd(activity.usdValue)}</span>
+            <div className="activity-trade-metrics">
+              <div className="activity-trade-metric">
+                <span>USD</span>
+                <strong>{formatUsd(activity.usdValue)}</strong>
+              </div>
+              <div className="activity-trade-metric">
+                <span>{selectedToken?.symbol ?? "Token"}</span>
+                <strong>{formatAmount(activity.tokenAmount)}</strong>
+              </div>
+              <div className="activity-trade-metric">
+                <span>{selectedToken?.quoteSymbol ?? "Quote"}</span>
+                <strong>{formatAmount(activity.quoteAmount)}</strong>
+              </div>
+              <div className="activity-trade-metric">
+                <span>Price</span>
+                <strong>{formatTokenPrice(activity.tokenPriceUsd)}</strong>
+              </div>
             </div>
 
-            <div className="activity-details">
-              <span
-                title={activity.walletAddress ?? "Wallet address unavailable"}
-              >
-                {activity.walletAddress
-                  ? truncateAddress(activity.walletAddress)
-                  : "Wallet unavailable"}
-              </span>
-              <span>
-                {activity.quoteAmount === null
-                  ? "Quote amount unavailable"
-                  : `${formatAmount(activity.quoteAmount)} ${selectedToken?.quoteSymbol ?? "quote"}`}
-              </span>
-            </div>
-
-            <div className="activity-footer">
-              <span>{activity.dex ?? "DEX unavailable"}</span>
-              {activity.explorerUrl ? (
-                <a
-                  href={activity.explorerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={`Open transaction ${activity.transactionHash} in the block explorer`}
-                  aria-label={`View transaction ${truncateAddress(activity.transactionHash)} in block explorer`}
-                >
-                  {truncateAddress(activity.transactionHash)}
-                  <ExternalLink size={11} aria-hidden="true" />
-                </a>
-              ) : (
-                <span title={activity.transactionHash}>
-                  {truncateAddress(activity.transactionHash)}
-                </span>
-              )}
+            <div className="activity-participants">
+              <div className="activity-participant">
+                <span>Trader</span>
+                {activity.walletExplorerUrl && activity.walletAddress ? (
+                  <a
+                    href={activity.walletExplorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Open trader ${activity.walletAddress} in the block explorer`}
+                  >
+                    {truncateAddress(activity.walletAddress)}
+                    <ExternalLink size={10} aria-hidden="true" />
+                  </a>
+                ) : (
+                  <span title={activity.walletAddress ?? undefined}>
+                    {activity.walletAddress
+                      ? truncateAddress(activity.walletAddress)
+                      : "Unavailable"}
+                  </span>
+                )}
+              </div>
+              <div className="activity-participant">
+                <span>Txn</span>
+                {activity.explorerUrl ? (
+                  <a
+                    href={activity.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Open transaction ${activity.transactionHash} in the block explorer`}
+                    aria-label={`View transaction ${truncateAddress(activity.transactionHash)} in block explorer`}
+                  >
+                    {truncateAddress(activity.transactionHash)}
+                    <ExternalLink size={11} aria-hidden="true" />
+                  </a>
+                ) : (
+                  <span title={activity.transactionHash}>
+                    {truncateAddress(activity.transactionHash)}
+                  </span>
+                )}
+              </div>
             </div>
           </article>
         ))}
